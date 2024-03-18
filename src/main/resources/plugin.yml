@@ -1,0 +1,118 @@
+name: Core
+version: '${version}'
+main: dev.aledlb.Core
+api-version: '1.20'
+authors: [aledlb]
+
+depend:
+  - Vault
+
+commands:
+  core:
+    description: Core plugin command
+    usage: /core
+    aliases: [c]
+  permission:
+    description: Manage permissions
+    permission: core.permission
+    default: op
+  freeze:
+    description: Freeze a player
+    usage: /freeze <player>
+    permission: core.freeze
+    default: op
+  mute:
+    description: Mute a player
+    usage: /mute <player> [reason]
+    permission: core.mute
+    default: op
+  unmute:
+    description: Unmute a player
+    usage: /unmute <player>
+    permission: core.mute
+    default: op
+  gmc:
+    description: Change gamemode to creative
+    usage: /gmc
+    aliases: [creative]
+    permission: core.gamemode
+    default: op
+  gms:
+    description: Change gamemode to survival
+    usage: /gms
+    aliases: [survival]
+    permission: core.gamemode
+    default: op
+  gma:
+    description: Change gamemode to adventure
+    usage: /gma
+    aliases: [adventure]
+    permission: core.gamemode
+    default: op
+  gmsp:
+    description: Change gamemode to spectator
+    usage: /gmsp
+    aliases: [spectator]
+    permission: core.gamemode
+    default: op
+  fly:
+    description: Enable or disable fly mode
+    usage: /fly
+    permission: core.fly
+    default: op
+  vanish:
+    description: Enable or disable vanish mode
+    usage: /vanish
+    aliases: [v]
+    permission: core.vanish
+    default: op
+  enchantgui:
+    description: Open the enchantment GUI.
+    usage: /enchantgui
+    aliases: [egui]
+    permission: core.enchantgui
+    default: op
+  kit:
+    description: Manage kits.
+    usage: /kit [save] <kitName>
+    permissions: core.kit.save
+permissions:
+  core.freeze:
+    description: Allows freezing players
+    default: op
+  core.freeze.bypass:
+    description: Allows bypassing the freeze
+    default: op
+  core.mute:
+    description: Allows muting players
+    default: op
+  core.gamemode:
+    description: Allows changing gamemode
+    default: op
+  core.fly:
+    description: Allows enabling or disabling fly mode
+    default: op
+  core.vanish:
+    description: Allows enabling or disabling vanish mode
+    default: op
+  core.vanish.see:
+    description: Allows seeing vanished players
+    default: op
+  core.kit.*:
+    description: Access to all kit
+    default: op
+  core.kit.save:
+    description: Allows saving kits
+    default: op
+  core.kit.load:
+    description: Allows loading kits
+    default: op
+  core.kit.delete:
+    description: Allows deleting kits
+    default: op
+  core.kit.list:
+    description: Allows listing kits
+    default: op
+  core.enchantgui:
+    description: Allows opening the enchantment GUI
+    default: op
