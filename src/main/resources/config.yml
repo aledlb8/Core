@@ -1,5 +1,20 @@
 # Hey, thanks for using this plugin!
 
-check_for_updates: true
+check-for-updates: true
 
 prefix: "§8[§cCore§8]"
+
+motd:
+  first-line: "Welcome to the server!"
+  second-line: "Enjoy your stay!"
+  icon-path: "textures/items/diamond.png"
+
+groups:
+  Owner:
+    permissions:
+      - '*'
+    prefix: '&7[&cOwner&7]'
+users:
+  aledlb8:
+    groups:
+      - Owner

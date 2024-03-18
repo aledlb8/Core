@@ -1,7 +1,9 @@
 package dev.aledlb.listeners;
 
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
@@ -11,10 +13,18 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.Team;
+
+import java.util.List;
 
 public class PlayerEvent implements Listener {
 
+    private final JavaPlugin plugin;
+
     public PlayerEvent(JavaPlugin plugin) {
+        this.plugin = plugin;
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
@@ -22,7 +32,8 @@ public class PlayerEvent implements Listener {
     public void OnJoin(PlayerJoinEvent event) {
         event.setJoinMessage(null);
         Player player = event.getPlayer();
-        Bukkit.broadcastMessage(ChatColor.GRAY + "[" + ChatColor.GREEN + "+" + ChatColor.GRAY + "] " + ChatColor.GREEN + player.getName() + ChatColor.GRAY + " has joined the server.");
+        updateNameTag(player);
+        Bukkit.broadcastMessage(ChatColor.GRAY + "[" + ChatColor.GREEN + "+" + ChatColor.GRAY + "] " + ChatColor.GREEN + player.getDisplayName() + ChatColor.GRAY + " has joined the server.");
     }
 
     @EventHandler
@@ -67,14 +78,49 @@ public class PlayerEvent implements Listener {
         if (player.hasMetadata("muted")) {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "You are muted.");
+            return;
         }
+
+        String prefix = PlaceholderAPI.setPlaceholders(player, "%core_prefix%");
+        String formattedMessage;
+
+        String message = event.getMessage();
+
+        prefix = ChatColor.translateAlternateColorCodes('&', prefix);
+        message = ChatColor.translateAlternateColorCodes('&', message);
+
+        if (prefix.isEmpty()) {
+            formattedMessage = String.format("&f%s: %s", player.getDisplayName(), message);
+        } else {
+            formattedMessage = String.format("%s &f%s: %s", prefix, player.getDisplayName(), message);
+        }
+
+        String coloredFormattedMessage = ChatColor.translateAlternateColorCodes('&', formattedMessage);
+
+        event.setFormat(coloredFormattedMessage);
     }
 
-    @EventHandler
-    public void onMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-        if (player.hasMetadata("frozen")) {
-            event.setCancelled(true);
-        }
+    public static void updateNameTag(Player player) {
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        if (manager == null) return;
+
+        String prefix = PlaceholderAPI.setPlaceholders(player, "%core_prefix%");
+        if (prefix.isEmpty()) return;
+
+        Scoreboard scoreboard = manager.getNewScoreboard();
+        Team team = scoreboard.getTeam(player.getName()) != null ? scoreboard.getTeam(player.getName()) : scoreboard.registerNewTeam(player.getName());
+
+        prefix = ChatColor.translateAlternateColorCodes('&', prefix);
+        String formattedPlayerName = String.format("%s &f%s", prefix, player.getDisplayName());
+        String coloredFormattedPlayerName = ChatColor.translateAlternateColorCodes('&', formattedPlayerName);
+
+        player.setPlayerListName(coloredFormattedPlayerName);
+
+        prefix = ChatColor.translateAlternateColorCodes('&', prefix + " ");
+
+        team.setPrefix(ChatColor.translateAlternateColorCodes('&', prefix));
+        team.addEntry(player.getName());
+
+        player.setScoreboard(scoreboard);
     }
 }

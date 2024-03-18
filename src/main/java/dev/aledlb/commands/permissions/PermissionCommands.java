@@ -7,10 +7,13 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static dev.aledlb.listeners.PlayerEvent.updateNameTag;
 
 public class PermissionCommands implements CommandExecutor {
 
@@ -131,6 +134,8 @@ public class PermissionCommands implements CommandExecutor {
             return true;
         }
         switch (args[1].toLowerCase()) {
+            case "prefix":
+                return prefixGroup(args[0], args[2], sender);
             case "add":
                 return addGroupPermission(args[0], args[2], sender);
             case "remove":
@@ -155,6 +160,13 @@ public class PermissionCommands implements CommandExecutor {
             }
         }
         usage(sender, "group");
+        return true;
+    }
+
+    private boolean prefixGroup(String group, String arg, CommandSender sender) {
+        main.getConfig().set("groups." + group + ".prefix", arg);
+        sender.sendMessage("§2Set prefix of group §a" + group + "§2 to §a" + arg + "§2.");
+        main.reloadPermissions();
         return true;
     }
 
@@ -248,6 +260,10 @@ public class PermissionCommands implements CommandExecutor {
         switch (args[0].toLowerCase()) {
             case "reload":
                 main.reloadPermissionsWithoutSaving();
+                for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+                    if (player != null)
+                        updateNameTag(player);
+                }
                 commandSender.sendMessage(ChatColor.GREEN + "Permissions have been reloaded.");
                 return true;
             case "default":
@@ -325,7 +341,7 @@ public class PermissionCommands implements CommandExecutor {
         s.sendMessage(header);
         switch (p) {
             case "":
-                s.sendMessage("§3Core Permissions commands: §b/lp ...");
+                s.sendMessage("§3Core Permissions commands: §b/permission ...");
                 s.sendMessage("§3- §bdefault §3- manage default permissions for everyone");
                 s.sendMessage("§3- §buser <user> §3- manage permissions per user");
                 s.sendMessage("§3- §bgroup <group> §3- manage permissions per group");
@@ -333,13 +349,13 @@ public class PermissionCommands implements CommandExecutor {
                 s.sendMessage("§3- §breload §3- reload permissions from config");
                 break;
             case "default":
-                s.sendMessage("§3Default subcommands: §b/lp default ...");
+                s.sendMessage("§3Default subcommands: §b/permission default ...");
                 s.sendMessage("§3- §binfo §3- show default permissions");
                 s.sendMessage("§3- §badd §3- add default permission to everyone");
                 s.sendMessage("§3- §bremove <permission> §3- remove default permission from everyone");
                 break;
             case "user":
-                s.sendMessage("§3User subcommands: §b/lp user <user> ...");
+                s.sendMessage("§3User subcommands: §b/permission user <user> ...");
                 s.sendMessage("§3- §binfo §3- show a user's permissions and groups");
                 s.sendMessage("§3- §badd <permission> §3- add permission to a user");
                 s.sendMessage("§3- §bremove <permission> §3- remove permission from a user");
@@ -347,8 +363,9 @@ public class PermissionCommands implements CommandExecutor {
                 s.sendMessage("§3- §bremovegroup <group> §3- remove user from a group");
                 break;
             case "group":
-                s.sendMessage("§3Group subcommands: §b/lp group <group> ...");
+                s.sendMessage("§3Group subcommands: §b/permission group <group> ...");
                 s.sendMessage("§3- §binfo §3- show a group's permissions and members");
+                s.sendMessage("§3- §bprefix <prefix> §3- set a group's prefix");
                 s.sendMessage("§3- §badd <permission> §3- add permission to a group");
                 s.sendMessage("§3- §bremove <permission> §3- remove permission from a group");
                 s.sendMessage("§3- §baddmember <user> §3- add user to a group");

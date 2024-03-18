@@ -4,8 +4,12 @@ main: dev.aledlb.Core
 api-version: '1.20'
 authors: [aledlb]
 
+load: POSTWORLD
+
 depend:
   - Vault
+softdepend:
+  - PlaceholderAPI
 
 commands:
   core:
@@ -14,6 +18,7 @@ commands:
     aliases: [c]
   permission:
     description: Manage permissions
+    aliases: [perm]
     permission: core.permission
     default: op
   freeze:

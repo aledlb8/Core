@@ -35,10 +35,6 @@ public class KitCommand implements CommandExecutor {
         }
 
         KitSubCommand subCommand = subCommands.get(args[0].toLowerCase());
-        if (subCommand == null) {
-            sender.sendMessage(ChatColor.RED + "Invalid command. Use /kit <save|load|delete|list>");
-            return true;
-        }
 
         return subCommand.onCommand(sender, player, args);
     }

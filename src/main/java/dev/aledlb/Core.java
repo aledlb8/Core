@@ -1,7 +1,10 @@
 package dev.aledlb;
 
+import dev.aledlb.commands.kit.KitTabCompleter;
 import dev.aledlb.commands.permissions.PermissionCommands;
-import dev.aledlb.commands.permissions.TabCompleter;
+import dev.aledlb.commands.permissions.PermissionTabCompleter;
+import dev.aledlb.features.motd.MOTDManager;
+import dev.aledlb.features.placeholder.CorePlaceholderExpansion;
 import net.milkbowl.vault.economy.Economy;
 
 import dev.aledlb.commands.gamemode.GMA;
@@ -59,11 +62,34 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
 
         permissions = new HashMap<>();
 
+        Plugin[] plugins = Bukkit.getPluginManager().getPlugins();
+        for (Plugin plugin : plugins) {
+            if (plugin.getName().equals("Vault")) {
+                Logger.console("Vault found, enabling economy features");
+                setupEconomy();
+                break;
+            }
+
+            if (plugin.getName().equals("PlaceholderAPI")) {
+                Logger.console("PlaceholderAPI found, enabling placeholders");
+                new CorePlaceholderExpansion(this).register();
+                break;
+            }
+        }
+
 //        if (!setupEconomy() ) {
-//            Logger.console("Disabled due to no Vault dependency found!");
-//            getServer().getPluginManager().disablePlugin(this);
+//            Logger.console("No Vault dependency found!");
+//            Logger.console("Disabling economy features");
+//            //getServer().getPluginManager().disablePlugin(this);
 //            return;
 //        }
+
+//        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+//
+//            Logger.console("PlaceholderAPI found, enabling placeholders");
+//        }
+
+        getServer().getPluginManager().registerEvents(new MOTDManager(this), this);
 
         getServer().getPluginManager().registerEvents(this, this);
         enchantGUI = new EnchantmentGUI(this);
@@ -71,33 +97,34 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
         new PlayerEvent(this);
 
         // Permission
-        getCommand("permission").setTabCompleter(new TabCompleter(this));
+        getCommand("permission").setTabCompleter(new PermissionTabCompleter(this));
         getCommand("permission").setExecutor(new PermissionCommands(this));
 
         // Core
-        this.getCommand("core").setExecutor(this);
+        getCommand("core").setExecutor(this);
 
         // GameMode
-        this.getCommand("gmc").setExecutor(new GMC());
-        this.getCommand("gms").setExecutor(new GMS());
-        this.getCommand("gma").setExecutor(new GMA());
-        this.getCommand("gmsp").setExecutor(new GMSP());
+        getCommand("gmc").setExecutor(new GMC());
+        getCommand("gms").setExecutor(new GMS());
+        getCommand("gma").setExecutor(new GMA());
+        getCommand("gmsp").setExecutor(new GMSP());
 
         // Staff
-        this.getCommand("freeze").setExecutor(new Freeze());
-        this.getCommand("mute").setExecutor(new Mute());
-        this.getCommand("unmute").setExecutor(new Unmute());
-        this.getCommand("fly").setExecutor(new Fly());
-        this.getCommand("vanish").setExecutor(new Vanish());
-        this.getCommand("enchantgui").setExecutor(new EnchantGUI(enchantGUI));
+        getCommand("freeze").setExecutor(new Freeze());
+        getCommand("mute").setExecutor(new Mute());
+        getCommand("unmute").setExecutor(new Unmute());
+        getCommand("fly").setExecutor(new Fly());
+        getCommand("vanish").setExecutor(new Vanish());
+        getCommand("enchantgui").setExecutor(new EnchantGUI(enchantGUI));
 
         // Kit
-        this.getCommand("kit").setExecutor(new KitCommand(kitManager));
+        getCommand("kit").setTabCompleter(new KitTabCompleter(this));
+        getCommand("kit").setExecutor(new KitCommand(kitManager));
 
         addPermsToOnlinePlayers();
 
 
-        if (config.getBoolean("check_for_updates")) {
+        if (config.getBoolean("check-for-updates")) {
             int resourceId = 12345;
             String currentVersion = getDescription().getVersion();
             UpdateChecker updateChecker = new UpdateChecker(resourceId, currentVersion);
@@ -153,25 +180,25 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
         PermissionAttachment attachment = p.addAttachment(this);
 
         for (String permission : config.getStringList("default.permissions")) {
-            attachment.setPermission(permission, true);
+            addPermission(attachment, permission);
             //System.out.println("Adding " + permission + " to " + p.getName() + " because default");
         }
 
         for (String group : getConfig().getStringList("users." + p.getName() + ".groups")) {
             System.out.println("User " + p.getName() + " is in group " + group);
             for (String perm : getConfig().getStringList("groups." + group + ".permissions")) {
-                attachment.setPermission(perm, true);
+                addPermission(attachment, perm);
                 //System.out.println(" Adding " + perm + " to " + p.getName() + " because group " + group);
             }
             for (String parent : getConfig().getStringList("groups." + group + ".parents"))
                 for (String perm : getConfig().getStringList("groups." + parent + ".permissions")) {
-                    attachment.setPermission(perm, true);
+                    addPermission(attachment, perm);
                     //System.out.println(" Adding " + perm + " to " + p.getName() + " because group " + group);
                 }
         }
 
         for (String perm : getConfig().getStringList("users." + p.getName() + ".permissions")) {
-            attachment.setPermission(perm, true);
+            addPermission(attachment, perm);
             //System.out.println("Adding " + perm + " to " + p.getName() + " because player");
         }
 
@@ -196,6 +223,14 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
 
             }
         }
+    }
+
+    private void addPermission(PermissionAttachment attachment, String permission) {
+        boolean positive = !permission.startsWith("-");
+        if (!positive) {
+            permission = permission.substring(1);
+        }
+        attachment.setPermission(permission, positive);
     }
 
     void removePermissions() {

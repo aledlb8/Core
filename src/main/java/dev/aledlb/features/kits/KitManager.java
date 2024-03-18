@@ -36,16 +36,6 @@ public class KitManager implements Listener {
             return;
         }
 
-        if (player.getInventory().isEmpty()) {
-            player.sendMessage(ChatColor.RED + "You can't save an empty kit.");
-            return;
-        }
-
-        if (player.getInventory().getArmorContents().length == 0 || player.getInventory().getContents().length == 0) {
-            player.sendMessage(ChatColor.RED + "You must have armor and inventory items to save a kit.");
-            return;
-        }
-
         // Save inventory, armor, and off-hand items
         kitConfig.set("inventory", player.getInventory().getContents());
         kitConfig.set("armor", player.getInventory().getArmorContents());

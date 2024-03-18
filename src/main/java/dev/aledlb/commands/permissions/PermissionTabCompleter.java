@@ -4,16 +4,17 @@ import dev.aledlb.Core;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class TabCompleter implements org.bukkit.command.TabCompleter {
+public class PermissionTabCompleter implements TabCompleter {
 
     final Core main;
 
-    public TabCompleter(Core main) {
+    public PermissionTabCompleter(Core main) {
         this.main = main;
     }
 
@@ -24,7 +25,7 @@ public class TabCompleter implements org.bukkit.command.TabCompleter {
             "add","remove","addgroup","removegroup","info"
     };
     final String[] group = new String[] {
-            "add","remove","info","addmember","removemember", "family", "addparent", "removeparent",
+            "add","prefix","remove","info","addmember","removemember", "family", "addparent", "removeparent",
     };
     final String[] defaultGroup = new String[] {
             "add","remove","info"

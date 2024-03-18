@@ -29,6 +29,17 @@ public class SaveKitCommand implements KitSubCommand {
             player.sendMessage(ChatColor.RED + "Usage: /kit save <kitName>");
             return true;
         }
+
+        if (player.getInventory().isEmpty()) {
+            player.sendMessage(ChatColor.RED + "You can't save an empty kit.");
+            return true;
+        }
+
+        if (player.getInventory().getArmorContents().length == 0 || player.getInventory().getContents().length == 0) {
+            player.sendMessage(ChatColor.RED + "You must have armor and inventory items to save a kit.");
+            return true;
+        }
+
         String kitName = args[1];
         kitManager.saveKit(player, kitName);
         Logger.player(player, ChatColor.GREEN + "Kit saved as " + kitName);
