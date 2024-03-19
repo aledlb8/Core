@@ -1,4 +1,4 @@
-package dev.aledlb.commands.gamemode;
+package dev.aledlb.commands.staff.gamemode;
 
 import dev.aledlb.utilities.Logger;
 import org.bukkit.ChatColor;
@@ -8,7 +8,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class GMS implements CommandExecutor {
+public class GMSP implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -21,8 +21,8 @@ public class GMS implements CommandExecutor {
             return true;
         }
 
-        player.setGameMode(GameMode.SURVIVAL);
-        Logger.player(player, ChatColor.GREEN + "Gamemode updated to Survival");
+        player.setGameMode(GameMode.SPECTATOR);
+        Logger.player(player, ChatColor.GREEN + "Gamemode updated to Spectator");
         return true;
     }
 }

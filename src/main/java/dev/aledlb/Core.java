@@ -7,10 +7,10 @@ import dev.aledlb.features.motd.MOTDManager;
 import dev.aledlb.features.placeholder.CorePlaceholderExpansion;
 import net.milkbowl.vault.economy.Economy;
 
-import dev.aledlb.commands.gamemode.GMA;
-import dev.aledlb.commands.gamemode.GMC;
-import dev.aledlb.commands.gamemode.GMS;
-import dev.aledlb.commands.gamemode.GMSP;
+import dev.aledlb.commands.staff.gamemode.GMA;
+import dev.aledlb.commands.staff.gamemode.GMC;
+import dev.aledlb.commands.staff.gamemode.GMS;
+import dev.aledlb.commands.staff.gamemode.GMSP;
 import dev.aledlb.commands.kit.KitCommand;
 import dev.aledlb.commands.staff.*;
 import dev.aledlb.features.enchantments.EnchantmentGUI;

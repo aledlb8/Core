@@ -1,4 +1,4 @@
-package dev.aledlb.commands.gamemode;
+package dev.aledlb.commands.staff.gamemode;
 
 import dev.aledlb.utilities.Logger;
 import org.bukkit.ChatColor;
@@ -8,7 +8,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class GMA implements CommandExecutor {
+public class GMC implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -21,8 +21,8 @@ public class GMA implements CommandExecutor {
             return true;
         }
 
-        player.setGameMode(GameMode.ADVENTURE);
-        Logger.player(player, ChatColor.GREEN + "Gamemode updated to Adventure");
+        player.setGameMode(GameMode.CREATIVE);
+        Logger.player(player, ChatColor.GREEN + "Gamemode updated to Creative");
         return true;
     }
 }

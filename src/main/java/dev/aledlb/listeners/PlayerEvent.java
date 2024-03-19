@@ -72,6 +72,14 @@ public class PlayerEvent implements Listener {
     }
 
     @EventHandler
+    public void onMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        if (player.hasMetadata("frozen")) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
     public void onMessage(PlayerChatEvent event) {
         Player player = event.getPlayer();
 
