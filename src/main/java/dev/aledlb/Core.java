@@ -77,18 +77,6 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
             }
         }
 
-//        if (!setupEconomy() ) {
-//            Logger.console("No Vault dependency found!");
-//            Logger.console("Disabling economy features");
-//            //getServer().getPluginManager().disablePlugin(this);
-//            return;
-//        }
-
-//        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-//
-//            Logger.console("PlaceholderAPI found, enabling placeholders");
-//        }
-
         getServer().getPluginManager().registerEvents(new MOTDManager(this), this);
 
         getServer().getPluginManager().registerEvents(this, this);
