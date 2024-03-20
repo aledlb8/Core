@@ -59,8 +59,8 @@ public class EnchantmentGUI implements Listener {
             Enchantment.PIERCING,
             Enchantment.MENDING,
             //Enchantment.VANISHING_CURSE,
-            Enchantment.SOUL_SPEED,
-            Enchantment.SWIFT_SNEAK
+            Enchantment.SOUL_SPEED
+            //Enchantment.SWIFT_SNEAK
     );
 
     public EnchantmentGUI(JavaPlugin plugin) {
