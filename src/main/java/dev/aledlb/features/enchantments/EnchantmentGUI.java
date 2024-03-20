@@ -1,5 +1,6 @@
 package dev.aledlb.features.enchantments;
 
+import dev.aledlb.utilities.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -71,7 +72,7 @@ public class EnchantmentGUI implements Listener {
     public void openGUI(Player player) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
         if (itemInHand.getType() == Material.AIR) {
-            player.sendMessage("You must hold an item to enchant.");
+            Logger.player(player, "You must hold an item to enchant.");
             return;
         }
 
@@ -89,23 +90,21 @@ public class EnchantmentGUI implements Listener {
             }
         }
 
-        // Add "Max Enchantments" book
         ItemStack maxEnchantsBook = new ItemStack(Material.ENCHANTED_BOOK);
         ItemMeta maxMeta = maxEnchantsBook.getItemMeta();
         if (maxMeta != null) {
             maxMeta.setDisplayName("Max Enchantments");
             maxEnchantsBook.setItemMeta(maxMeta);
         }
-        inv.setItem(25, maxEnchantsBook); // Position 25 for bottom right
+        inv.setItem(25, maxEnchantsBook);
 
-        // Add "Remove Enchantments" book
         ItemStack removeEnchantsBook = new ItemStack(Material.BOOK);
         ItemMeta removeMeta = removeEnchantsBook.getItemMeta();
         if (removeMeta != null) {
             removeMeta.setDisplayName("Remove Enchantments");
             removeEnchantsBook.setItemMeta(removeMeta);
         }
-        inv.setItem(26, removeEnchantsBook); // Position 26 for bottom right next to the other
+        inv.setItem(26, removeEnchantsBook);
 
 
         player.openInventory(inv);
@@ -137,7 +136,6 @@ public class EnchantmentGUI implements Listener {
                     return;
                 }
 
-                // Check if "Remove Enchantments" book was clicked
                 if ("Remove Enchantments".equals(displayName)) {
                     for (Enchantment enchantment : itemToEnchant.getEnchantments().keySet()) {
                         itemToEnchant.removeEnchantment(enchantment);
@@ -176,10 +174,10 @@ public class EnchantmentGUI implements Listener {
 
         // Populate the inventory with options for enchantment levels up to the max level
         for (int i = 1; i <= maxLevel; i++) {
-            ItemStack levelOption = new ItemStack(Material.PAPER); // Using PAPER as a placeholder; consider using a more appropriate item.
+            ItemStack levelOption = new ItemStack(Material.PAPER);
             ItemMeta meta = levelOption.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName(String.valueOf(i)); // Set the display name to indicate the level
+                meta.setDisplayName(String.valueOf(i));
                 levelOption.setItemMeta(meta);
             }
             inv.addItem(levelOption);

@@ -1,5 +1,6 @@
 package dev.aledlb.features.kits;
 
+import dev.aledlb.utilities.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -30,9 +31,8 @@ public class KitManager implements Listener {
         File kitFile = new File(plugin.getDataFolder() + File.separator + "kits", kitName + ".yml");
         FileConfiguration kitConfig = YamlConfiguration.loadConfiguration(kitFile);
 
-        // check if the kit already exists
         if (kitFile.exists()) {
-            player.sendMessage(ChatColor.RED + "A kit with that name already exists.");
+            Logger.player(player, ChatColor.RED + "A kit with that name already exists.");
             return;
         }
 
@@ -44,8 +44,8 @@ public class KitManager implements Listener {
         try {
             kitConfig.save(kitFile);
         } catch (Exception e) {
+            Logger.player(player, ChatColor.RED + "An error occurred while saving the kit" + e.getMessage());
             e.printStackTrace();
-            player.sendMessage(ChatColor.RED + "An error occurred while saving the kit" + e.getMessage());
         }
     }
 
@@ -53,12 +53,12 @@ public class KitManager implements Listener {
         File kitFile = new File(plugin.getDataFolder() + File.separator + "kits", kitName + ".yml");
 
         if (!kitFile.exists()) {
-            player.sendMessage(ChatColor.RED + "No kit with that name exists.");
+            Logger.player(player, ChatColor.RED + "No kit with that name exists.");
             return;
         }
 
         if (!kitFile.delete()) {
-            player.sendMessage(ChatColor.RED + "An error occurred while deleting the kit.");
+            Logger.player(player, ChatColor.RED + "An error occurred while deleting the kit.");
             return;
         }
 
@@ -106,7 +106,7 @@ public class KitManager implements Listener {
 
             player.openInventory(kitsGUI);
         } else {
-            player.sendMessage(ChatColor.RED + "No kits found.");
+            Logger.player(player, ChatColor.RED + "No kits found.");
         }
     }
 
@@ -125,7 +125,7 @@ public class KitManager implements Listener {
         String kitName = ChatColor.stripColor(meta.getDisplayName());
         File kitFile = new File(plugin.getDataFolder() + File.separator + "kits", kitName + ".yml");
         if (!kitFile.exists()) {
-            player.sendMessage(ChatColor.RED + "Kit does not exist.");
+            Logger.player(player, ChatColor.RED + "Kit does not exist.");
             return;
         }
 
@@ -135,7 +135,7 @@ public class KitManager implements Listener {
         }
 
         if (player.getInventory().firstEmpty() == -1) {
-            player.sendMessage(ChatColor.RED + "Your inventory is full.");
+            Logger.player(player, ChatColor.RED + "Your inventory is full.");
             return;
         }
 
@@ -162,9 +162,9 @@ public class KitManager implements Listener {
                 player.getInventory().setItemInOffHand(offHand);
             }
 
-            player.sendMessage(ChatColor.GREEN + "Kit " + kitName + " loaded.");
+            Logger.player(player, ChatColor.GREEN + "Kit " + kitName + " loaded.");
         } catch (Exception e) {
-            player.sendMessage(ChatColor.RED + "An error occurred while loading the kit.");
+            Logger.player(player, ChatColor.RED + "An error occurred while loading the kit.");
             e.printStackTrace();
         }
     }
@@ -172,7 +172,7 @@ public class KitManager implements Listener {
     public void loadKitForPlayer(Player player, String kitName) {
         File kitFile = new File(plugin.getDataFolder() + File.separator + "kits", kitName + ".yml");
         if (!kitFile.exists()) {
-            player.sendMessage(ChatColor.RED + "Kit " + kitName + " does not exist.");
+            Logger.player(player, ChatColor.RED + "Kit " + kitName + " does not exist.");
             return;
         }
 
@@ -205,7 +205,7 @@ public class KitManager implements Listener {
 
             player.sendMessage(ChatColor.GREEN + "Kit " + kitName + " loaded successfully.");
         } catch (Exception e) {
-            player.sendMessage(ChatColor.RED + "An error occurred while loading the kit: " + e.getMessage());
+            Logger.player(player, ChatColor.RED + "An error occurred while loading the kit: " + e.getMessage());
             e.printStackTrace();
         }
     }
