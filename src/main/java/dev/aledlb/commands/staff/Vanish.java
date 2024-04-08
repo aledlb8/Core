@@ -27,12 +27,18 @@ public class Vanish implements CommandExecutor {
             player.removeMetadata("vanished", plugin);
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 onlinePlayer.showPlayer(plugin, player);
+                onlinePlayer.setFlying(false);
+                onlinePlayer.setAllowFlight(false);
+                onlinePlayer.setInvulnerable(false);
             }
             Logger.player(player, ChatColor.GREEN + "Vanish mode disabled");
         } else {
             player.setMetadata("vanished", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 onlinePlayer.hidePlayer(plugin, player);
+                onlinePlayer.setFlying(true);
+                onlinePlayer.setAllowFlight(true);
+                onlinePlayer.setInvulnerable(true);
             }
             Logger.player(player, ChatColor.GREEN + "Vanish mode enabled");
         }

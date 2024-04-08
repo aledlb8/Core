@@ -1,4 +1,4 @@
-package dev.aledlb.commands.staff;
+package dev.aledlb.commands.staff.moderation;
 
 import dev.aledlb.utilities.Logger;
 import org.bukkit.Bukkit;

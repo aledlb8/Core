@@ -81,6 +81,34 @@ commands:
     description: Manage kits.
     usage: /kit [save] <kitName>
     permissions: core.kit.save
+  broadcast:
+    description: Broadcast a message to the entire server.
+    usage: /broadcast <message>
+    permission: core.broadcast
+  feed:
+    description: No more hungry boy.
+    usage: /feed
+    permission: core.feed
+  heal:
+    description: Save that ass.
+    usage: /heal
+    permission: core.heal
+  more:
+    description: Get more of the item you're holding.
+    usage: /more
+    permission: core.more
+  rename:
+    description: Rename an item you're holding.
+    usage: /rename <displayName>
+    permission: core.rename
+  addlore:
+    description: Adds a lore to the item you're holding.
+    usage: /addlore <lore>
+    permission: core.addlore
+  removelore:
+    description: Removes a lore from the item you're holding.
+    usage: /removelore <number>
+    permission: core.removelore
 permissions:
   core.freeze:
     description: Allows freezing players

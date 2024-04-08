@@ -3,6 +3,12 @@ package dev.aledlb;
 import dev.aledlb.commands.kit.KitTabCompleter;
 import dev.aledlb.commands.permissions.PermissionCommands;
 import dev.aledlb.commands.permissions.PermissionTabCompleter;
+import dev.aledlb.commands.staff.item.AddLore;
+import dev.aledlb.commands.staff.item.RemoveLore;
+import dev.aledlb.commands.staff.item.Rename;
+import dev.aledlb.commands.staff.moderation.Freeze;
+import dev.aledlb.commands.staff.moderation.Mute;
+import dev.aledlb.commands.staff.moderation.Unmute;
 import dev.aledlb.features.motd.MOTDManager;
 import dev.aledlb.features.placeholder.CorePlaceholderExpansion;
 import net.milkbowl.vault.economy.Economy;
@@ -57,7 +63,7 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
     public void onEnable() {
         new Logger(config);
 
-        Logger.console("has been enabled");
+        Logger.console("initializing...");
         saveDefaultConfig();
 
         permissions = new HashMap<>();
@@ -98,12 +104,19 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
         getCommand("gmsp").setExecutor(new GMSP());
 
         // Staff
-        getCommand("freeze").setExecutor(new Freeze());
+        getCommand("freeze").setExecutor(new Freeze(this));
         getCommand("mute").setExecutor(new Mute());
         getCommand("unmute").setExecutor(new Unmute());
         getCommand("fly").setExecutor(new Fly());
         getCommand("vanish").setExecutor(new Vanish());
         getCommand("enchantgui").setExecutor(new EnchantGUI(enchantGUI));
+        getCommand("broadcast").setExecutor(new Broadcast());
+        getCommand("feed").setExecutor(new Feed());
+        getCommand("heal").setExecutor(new Heal());
+        getCommand("more").setExecutor(new More());
+        getCommand("rename").setExecutor(new Rename());
+        getCommand("addlore").setExecutor(new AddLore());
+        getCommand("removelore").setExecutor(new RemoveLore());
 
         // Kit
         getCommand("kit").setTabCompleter(new KitTabCompleter(this));
@@ -111,6 +124,11 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
 
         addPermsToOnlinePlayers();
 
+        Logger.console("&4==========&7=======&7[&a&lActivated&7]=======&4==========");
+        Logger.console("&7Core Plugin has been enabled");
+        Logger.console("");
+        Logger.console("&7Version: &6" + getDescription().getVersion());
+        Logger.console("&4==========&7=======&7[&a&lActivated&7]=======&4==========");
 
         if (config.getBoolean("check-for-updates")) {
             int resourceId = 12345;
@@ -123,6 +141,14 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
                 Logger.console("You can download it at: https://www.spigotmc.org/resources/" + resourceId);
             }
         }
+
+        Logger.console("&4==========&7===================================&4==========");
+        Logger.console("&eName: &6" + getDescription().getName());
+        Logger.console("&eAuthor: &6" + getDescription().getAuthors());
+        Logger.console("&4==========&7===================================&4==========");
+        Logger.console("&eMongoDB: &cNot implemented yet");
+        Logger.console("&eRedis: &cNot implemented yet");
+        Logger.console("&4==========&7===================================&4==========");
     }
 
     @Override
@@ -143,6 +169,15 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
         }
         economy = rsp.getProvider();
         return true;
+    }
+
+    public static boolean isInteger(String index) {
+        try {
+            Integer.parseInt(index);
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     static int getMcVersion() {
@@ -169,25 +204,21 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
 
         for (String permission : config.getStringList("default.permissions")) {
             addPermission(attachment, permission);
-            //System.out.println("Adding " + permission + " to " + p.getName() + " because default");
         }
 
         for (String group : getConfig().getStringList("users." + p.getName() + ".groups")) {
             System.out.println("User " + p.getName() + " is in group " + group);
             for (String perm : getConfig().getStringList("groups." + group + ".permissions")) {
                 addPermission(attachment, perm);
-                //System.out.println(" Adding " + perm + " to " + p.getName() + " because group " + group);
             }
             for (String parent : getConfig().getStringList("groups." + group + ".parents"))
                 for (String perm : getConfig().getStringList("groups." + parent + ".permissions")) {
                     addPermission(attachment, perm);
-                    //System.out.println(" Adding " + perm + " to " + p.getName() + " because group " + group);
                 }
         }
 
         for (String perm : getConfig().getStringList("users." + p.getName() + ".permissions")) {
             addPermission(attachment, perm);
-            //System.out.println("Adding " + perm + " to " + p.getName() + " because player");
         }
 
         permissions.put(p.getUniqueId(), attachment);

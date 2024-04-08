@@ -9,6 +9,7 @@ import org.bukkit.util.CachedServerIcon;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Objects;
 import javax.imageio.ImageIO;
 
 public class MOTDManager implements Listener {
@@ -31,14 +32,14 @@ public class MOTDManager implements Listener {
                 plugin.getLogger().warning("Server icon file not found at: " + file.getPath());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(System.err);
         }
     }
 
     @EventHandler
     public void onServerListPing(ServerListPingEvent event) {
-        String firstLine = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("motd.first-line"));
-        String secondLine = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("motd.second-line"));
+        String firstLine = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(plugin.getConfig().getString("motd.first-line")));
+        String secondLine = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(plugin.getConfig().getString("motd.second-line")));
         event.setMotd(firstLine + "\n" + secondLine);
 
         if (serverIcon != null) {

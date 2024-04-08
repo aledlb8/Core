@@ -51,7 +51,7 @@ public class PlayerEvent implements Listener {
         event.setDeathMessage(null);
         Player player = event.getEntity();
 
-        String[] deadMessages = {
+        String[] deathMessages = {
                 ChatColor.GRAY + "Oops, " + ChatColor.RED + player.getName() + ChatColor.GRAY + " " + "did it again.",
                 ChatColor.GRAY + "RIP " + ChatColor.RED + player.getName() + ChatColor.GRAY + ", you won't be missed.",
                 ChatColor.GRAY + "Goodbye, " + ChatColor.RED + player.getName() + ChatColor.GRAY + ".",
@@ -67,7 +67,7 @@ public class PlayerEvent implements Listener {
                 ChatColor.GRAY + "RIP " + ChatColor.RED + player.getName() + ChatColor.GRAY + ".",
         };
 
-        String randomMessage = deadMessages[(int) (Math.random() * deadMessages.length)];
+        String randomMessage = deathMessages[(int) (Math.random() * deathMessages.length)];
         Bukkit.broadcastMessage(ChatColor.GRAY + "[" + ChatColor.RED + "☠" + ChatColor.GRAY + "] " + randomMessage);
     }
 

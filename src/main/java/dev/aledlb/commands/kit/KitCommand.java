@@ -29,13 +29,13 @@ public class KitCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         Player player = (Player) sender;
-        if (args.length == 0) {
+        if (sender instanceof Player && args.length == 0) {
             KitManager.showKitsGUI(player);
             return true;
+        } else {
+            KitSubCommand subCommand = subCommands.get(args[0].toLowerCase());
+
+            return subCommand.onCommand(sender, player, args);
         }
-
-        KitSubCommand subCommand = subCommands.get(args[0].toLowerCase());
-
-        return subCommand.onCommand(sender, player, args);
     }
 }
