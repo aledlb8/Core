@@ -109,7 +109,63 @@ commands:
     description: Removes a lore from the item you're holding.
     usage: /removelore <number>
     permission: core.removelore
+  keepinventory:
+    description: Enables user to keep the inventory after death.
+    usage: /keepinventory
+    permission: core.keepinventory
+  chathistory:
+    description: View or clear a player's chat history
+    usage: /chathistory <player> [list|clear]
+    permission: core.chathistory
+    default: op
+  inventorybackup:
+    description: Manage player inventory backups
+    usage: /inventorybackup <player> [save|load|list|delete]
+    permission: core.inventorybackup
+    default: op
+  location:
+    description: Manage player locations
+    usage: /location <player> [save|load|list|delete]
+    permission: core.location
+    default: op
+  playerstats:
+    description: View player statistics
+    usage: /playerstats <player>
+    permission: core.playerstats
+    default: op
+  tempban:
+    description: Temporarily ban a player
+    usage: /tempban <player> <duration> <reason>
+    permission: core.tempban
+    default: op
+  unban:
+    description: Unban a player
+    usage: /unban <player>
+    permission: core.unban
+    default: op
+  warn:
+    description: Warn a player
+    usage: /warn <player> <reason>
+    permission: core.warn
+    default: op
+  unwarn:
+    description: Remove a warning from a player
+    usage: /unwarn <player>
+    permission: core.unwarn
+    default: op
+  chatfilter:
+    description: Manage chat filter rules
+    usage: /chatfilter <add|remove|list|reload> [name] [pattern] [action] [message]
+    permission: core.chatfilter
+    default: op
+
 permissions:
+  core.permission:
+    description: Allows managing permissions
+    default: op
+  core.keepinventory:
+    description: Allows using command
+    default: op
   core.freeze:
     description: Allows freezing players
     default: op
@@ -148,4 +204,55 @@ permissions:
     default: op
   core.enchantgui:
     description: Allows opening the enchantment GUI
+    default: op
+  core.chathistory:
+    description: Allows viewing and clearing chat history
+    default: op
+  core.inventorybackup:
+    description: Allows managing inventory backups
+    default: op
+  core.location:
+    description: Allows managing player locations
+    default: op
+  core.playerstats:
+    description: Allows viewing player statistics
+    default: op
+  core.tempban:
+    description: Allows temporarily banning players
+    default: op
+  core.unban:
+    description: Allows unbanned players
+    default: op
+  core.warn:
+    description: Allows warning players
+    default: op
+  core.unwarn:
+    description: Allows removing warnings from players
+    default: op
+  core.chatfilter:
+    description: Allows managing chat filter rules
+    default: op
+  core.chatfilter.bypass:
+    description: Allows bypassing chat filter rules
+    default: op
+  core.broadcast:
+    description: Allows broadcasting messages
+    default: op
+  core.feed:
+    description: Allows feeding players
+    default: op
+  core.heal:
+    description: Allows healing players
+    default: op
+  core.more:
+    description: Allows getting more items
+    default: op
+  core.rename:
+    description: Allows renaming items
+    default: op
+  core.addlore:
+    description: Allows adding lore to items
+    default: op
+  core.removelore:
+    description: Allows removing lore from items
     default: op

@@ -1,134 +1,219 @@
 package dev.aledlb.listeners;
 
+import dev.aledlb.Core;
+import dev.aledlb.utilities.Logger;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
+/**
+ * Handles all player-related events in the Core plugin.
+ * This includes:
+ * - Player join/quit messages
+ * - Death messages
+ * - Chat formatting
+ * - Name tag updates
+ * - Player freezing
+ * - Player muting
+ */
 public class PlayerEvent implements Listener {
 
-    private final JavaPlugin plugin;
+    private static final String JOIN_FORMAT = "&8[&a+&8] &a%s &8has joined the server.";
+    private static final String QUIT_FORMAT = "&8[&c-&8] &c%s &8has left the server.";
+    private static final String DEATH_PREFIX = "&8[&4☠&8] ";
+    private static final String MUTED_MESSAGE = "&cYou are muted.";
+    private static final String CHAT_FORMAT_WITH_PREFIX = "%s &f%s: %s";
+    private static final String CHAT_FORMAT_WITHOUT_PREFIX = "&f%s: %s";
 
-    public PlayerEvent(JavaPlugin plugin) {
+    private static final List<String> DEATH_MESSAGES = Arrays.asList(
+            "Oops, %s did it again.",
+            "RIP %s, you won't be missed.",
+            "Goodbye, %s.",
+            "Another one bites the dust. Goodbye, %s.",
+            "You can't respawn, %s.",
+            "You died, %s.",
+            "%s got yeeted.",
+            "%s was killed by a player who is better than them.",
+            "Goodnight, sweet prince. %s has died.",
+            "Goodbye, %s. You won't be remembered.",
+            "It's a sad day for %s.",
+            "%s died. What a shame.",
+            "RIP %s."
+    );
+
+    private final Core plugin;
+    private final Random random;
+
+    /**
+     * Creates a new PlayerEvent listener
+     * @param plugin The Core plugin instance
+     */
+    public PlayerEvent(Core plugin) {
         this.plugin = plugin;
+        this.random = new Random();
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
-    @EventHandler
-    public void OnJoin(PlayerJoinEvent event) {
-        event.setJoinMessage(null);
-        Player player = event.getPlayer();
-        updateNameTag(player);
-        Bukkit.broadcastMessage(ChatColor.GRAY + "[" + ChatColor.GREEN + "+" + ChatColor.GRAY + "] " + ChatColor.GREEN + player.getDisplayName() + ChatColor.GRAY + " has joined the server.");
+    /**
+     * Handles player join events
+     * @param event The join event
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onJoin(PlayerJoinEvent event) {
+        try {
+            event.setJoinMessage(null);
+            Player player = event.getPlayer();
+            updateNameTag(player);
+            broadcastMessage(String.format(JOIN_FORMAT, player.getDisplayName()));
+        } catch (Exception e) {
+            Logger.severe("Error handling player join event: " + e.getMessage());
+        }
     }
 
-    @EventHandler
+    /**
+     * Handles player quit events
+     * @param event The quit event
+     */
+    @EventHandler(priority = EventPriority.HIGH)
     public void onQuit(PlayerQuitEvent event) {
-        event.setQuitMessage(null);
-        Player player = event.getPlayer();
-        Bukkit.broadcastMessage(ChatColor.GRAY + "[" + ChatColor.RED + "-" + ChatColor.GRAY + "] " + ChatColor.RED + player.getName() + ChatColor.GRAY + " has left the server.");
-        if (player.hasMetadata("frozen")) {
-            Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(player.getName(), "You have been banned for leaving while frozen.", null, null);
+        try {
+            event.setQuitMessage(null);
+            Player player = event.getPlayer();
+            broadcastMessage(String.format(QUIT_FORMAT, player.getName()));
+
+            if (player.hasMetadata("frozen")) {
+                Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(
+                    player.getName(),
+                    "You have been banned for leaving while frozen.",
+                    null,
+                    null
+                );
+            }
+        } catch (Exception e) {
+            Logger.severe("Error handling player quit event: " + e.getMessage());
         }
     }
 
-    @EventHandler
+    /**
+     * Handles player death events
+     * @param event The death event
+     */
+    @EventHandler(priority = EventPriority.HIGH)
     public void onDeath(PlayerDeathEvent event) {
-        event.setDeathMessage(null);
-        Player player = event.getEntity();
-
-        String[] deathMessages = {
-                ChatColor.GRAY + "Oops, " + ChatColor.RED + player.getName() + ChatColor.GRAY + " " + "did it again.",
-                ChatColor.GRAY + "RIP " + ChatColor.RED + player.getName() + ChatColor.GRAY + ", you won't be missed.",
-                ChatColor.GRAY + "Goodbye, " + ChatColor.RED + player.getName() + ChatColor.GRAY + ".",
-                ChatColor.GRAY + "Another one bites the dust. Goodbye, " + ChatColor.RED + player.getName() + ChatColor.GRAY + ".",
-                ChatColor.GRAY + "You can't respawn, " + ChatColor.RED + player.getName() + ChatColor.GRAY + ".",
-                ChatColor.GRAY + "You died, " + ChatColor.RED + player.getName() + ChatColor.GRAY + ".",
-                ChatColor.RED + player.getName() + ChatColor.GRAY + " got yeeted.",
-                ChatColor.RED + player.getName() + ChatColor.GRAY + " was killed by a player who is better than them.",
-                ChatColor.GRAY + "Goodnight, sweet prince. " + ChatColor.RED + player.getName() + ChatColor.GRAY + " has died.",
-                ChatColor.GRAY + "Goodbye, " + ChatColor.RED + player.getName() + ChatColor.GRAY + ". You won't be remembered.",
-                ChatColor.GRAY + "It's a sad day for " + ChatColor.RED + player.getName() + ChatColor.GRAY + ".",
-                ChatColor.RED + player.getName() + ChatColor.GRAY + " died. What a shame.",
-                ChatColor.GRAY + "RIP " + ChatColor.RED + player.getName() + ChatColor.GRAY + ".",
-        };
-
-        String randomMessage = deathMessages[(int) (Math.random() * deathMessages.length)];
-        Bukkit.broadcastMessage(ChatColor.GRAY + "[" + ChatColor.RED + "☠" + ChatColor.GRAY + "] " + randomMessage);
-    }
-
-    @EventHandler
-    public void onMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-        if (player.hasMetadata("frozen")) {
-            event.setCancelled(true);
+        try {
+            event.setDeathMessage(null);
+            Player player = event.getEntity();
+            String deathMessage = DEATH_MESSAGES.get(random.nextInt(DEATH_MESSAGES.size()));
+            broadcastMessage(DEATH_PREFIX + String.format(deathMessage, player.getName()));
+        } catch (Exception e) {
+            Logger.severe("Error handling player death event: " + e.getMessage());
         }
     }
 
-    @EventHandler
-    public void onMessage(PlayerChatEvent event) {
-        Player player = event.getPlayer();
+    /**
+     * Handles player move events (for freezing)
+     * @param event The move event
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onMove(PlayerMoveEvent event) {
+        try {
+            Player player = event.getPlayer();
+            if (player.hasMetadata("frozen")) {
+                event.setCancelled(true);
+            }
+        } catch (Exception e) {
+            Logger.severe("Error handling player move event: " + e.getMessage());
+        }
+    }
 
+    /**
+     * Handles player chat events
+     * @param event The chat event
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onMessage(AsyncPlayerChatEvent event) {
+        Player player = event.getPlayer();
+        
+        // Check if player is muted
         if (player.hasMetadata("muted")) {
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "You are muted.");
+            Logger.player(player, ChatColor.RED + "You are muted and cannot chat.");
             return;
         }
-
-        String prefix = PlaceholderAPI.setPlaceholders(player, "%core_prefix%");
-        String formattedMessage;
-
-        String message = event.getMessage();
-
-        prefix = ChatColor.translateAlternateColorCodes('&', prefix);
-        message = ChatColor.translateAlternateColorCodes('&', message);
-
-        if (prefix.isEmpty()) {
-            formattedMessage = String.format("&f%s: %s", player.getDisplayName(), message);
-        } else {
-            formattedMessage = String.format("%s &f%s: %s", prefix, player.getDisplayName(), message);
-        }
-
-        String coloredFormattedMessage = ChatColor.translateAlternateColorCodes('&', formattedMessage);
-
-        event.setFormat(coloredFormattedMessage);
+        
+        // Apply chat format
+        String format = plugin.getConfig().getString("chat-format", "<%player%> %message%");
+        format = format.replace("%player%", player.getDisplayName());
+        format = format.replace("%message%", "%s");
+        event.setFormat(format);
     }
 
+    /**
+     * Updates a player's name tag with their prefix
+     * @param player The player to update
+     */
     public static void updateNameTag(Player player) {
-        ScoreboardManager manager = Bukkit.getScoreboardManager();
-        if (manager == null) return;
+        try {
+            ScoreboardManager manager = Bukkit.getScoreboardManager();
+            if (manager == null) {
+                Logger.warning("Could not get scoreboard manager for player: " + player.getName());
+                return;
+            }
 
-        String prefix = PlaceholderAPI.setPlaceholders(player, "%core_prefix%");
-        if (prefix.isEmpty()) return;
+            String prefix = PlaceholderAPI.setPlaceholders(player, "%core_prefix%");
+            if (prefix.isEmpty()) {
+                return;
+            }
 
-        Scoreboard scoreboard = manager.getNewScoreboard();
-        Team team = scoreboard.getTeam(player.getName()) != null ? scoreboard.getTeam(player.getName()) : scoreboard.registerNewTeam(player.getName());
+            Scoreboard scoreboard = manager.getNewScoreboard();
+            Team team = scoreboard.getTeam(player.getName());
+            if (team == null) {
+                team = scoreboard.registerNewTeam(player.getName());
+            }
 
-        prefix = ChatColor.translateAlternateColorCodes('&', prefix);
-        String formattedPlayerName = String.format("%s &f%s", prefix, player.getDisplayName());
-        String coloredFormattedPlayerName = ChatColor.translateAlternateColorCodes('&', formattedPlayerName);
+            prefix = colorize(prefix);
+            String formattedPlayerName = String.format("%s &f%s", prefix, player.getDisplayName());
+            player.setPlayerListName(colorize(formattedPlayerName));
 
-        player.setPlayerListName(coloredFormattedPlayerName);
+            team.setPrefix(colorize(prefix + " "));
+            team.addEntry(player.getName());
 
-        prefix = ChatColor.translateAlternateColorCodes('&', prefix + " ");
+            player.setScoreboard(scoreboard);
+        } catch (Exception e) {
+            Logger.severe("Error updating name tag for player " + player.getName() + ": " + e.getMessage());
+        }
+    }
 
-        team.setPrefix(ChatColor.translateAlternateColorCodes('&', prefix));
-        team.addEntry(player.getName());
+    /**
+     * Broadcasts a message to all players
+     * @param message The message to broadcast
+     */
+    private void broadcastMessage(String message) {
+        Bukkit.broadcastMessage(colorize(message));
+    }
 
-        player.setScoreboard(scoreboard);
+    /**
+     * Translates color codes in a string
+     * @param text The text to colorize
+     * @return The colorized text
+     */
+    private static String colorize(String text) {
+        return ChatColor.translateAlternateColorCodes('&', text);
     }
 }

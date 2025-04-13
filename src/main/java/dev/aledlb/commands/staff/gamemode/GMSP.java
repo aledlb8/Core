@@ -8,7 +8,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class GMSP implements CommandExecutor {
+/**
+ * Handles the /gmsp command which sets a player's gamemode to Spectator.
+ */
+public class GMSP extends BaseGameModeCommand {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -24,5 +27,15 @@ public class GMSP implements CommandExecutor {
         player.setGameMode(GameMode.SPECTATOR);
         Logger.player(player, ChatColor.GREEN + "Gamemode updated to Spectator");
         return true;
+    }
+
+    @Override
+    protected GameMode getGameMode() {
+        return GameMode.SPECTATOR;
+    }
+
+    @Override
+    protected String getGameModeName() {
+        return "Spectator";
     }
 }

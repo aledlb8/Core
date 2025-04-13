@@ -8,7 +8,20 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class GMS implements CommandExecutor {
+/**
+ * Handles the /gms command which sets a player's gamemode to Survival.
+ */
+public class GMS extends BaseGameModeCommand {
+    @Override
+    protected GameMode getGameMode() {
+        return GameMode.SURVIVAL;
+    }
+
+    @Override
+    protected String getGameModeName() {
+        return "Survival";
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {

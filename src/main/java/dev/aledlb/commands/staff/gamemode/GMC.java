@@ -8,7 +8,20 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class GMC implements CommandExecutor {
+/**
+ * Handles the /gmc command which sets a player's gamemode to Creative.
+ */
+public class GMC extends BaseGameModeCommand {
+    @Override
+    protected GameMode getGameMode() {
+        return GameMode.CREATIVE;
+    }
+
+    @Override
+    protected String getGameModeName() {
+        return "Creative";
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {

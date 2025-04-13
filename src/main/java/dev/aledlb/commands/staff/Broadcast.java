@@ -1,14 +1,10 @@
 package dev.aledlb.commands.staff;
 
-import dev.aledlb.utilities.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
-import static dev.aledlb.features.kits.KitManager.plugin;
 
 public class Broadcast implements CommandExecutor {
     @Override

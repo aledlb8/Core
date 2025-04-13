@@ -1,5 +1,6 @@
 package dev.aledlb.commands.staff;
 
+import dev.aledlb.Core;
 import dev.aledlb.utilities.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -8,9 +9,22 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import static dev.aledlb.features.kits.KitManager.plugin;
-
+/**
+ * Handles the vanish command.
+ * This command allows players to toggle their visibility to other players.
+ */
 public class Vanish implements CommandExecutor {
+    
+    private final Core plugin;
+    
+    /**
+     * Creates a new Vanish command executor
+     * @param plugin The Core plugin instance
+     */
+    public Vanish(Core plugin) {
+        this.plugin = plugin;
+    }
+    
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -18,7 +32,7 @@ public class Vanish implements CommandExecutor {
             return true;
         }
 
-        if (!player.hasPermission("core.mute")) {
+        if (!player.hasPermission("core.vanish")) {
             player.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
             return true;
         }

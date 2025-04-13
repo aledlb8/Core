@@ -1,16 +1,22 @@
 package dev.aledlb;
 
+import dev.aledlb.commands.KeepInventory;
 import dev.aledlb.commands.kit.KitTabCompleter;
 import dev.aledlb.commands.permissions.PermissionCommands;
 import dev.aledlb.commands.permissions.PermissionTabCompleter;
 import dev.aledlb.commands.staff.item.AddLore;
 import dev.aledlb.commands.staff.item.RemoveLore;
 import dev.aledlb.commands.staff.item.Rename;
-import dev.aledlb.commands.staff.moderation.Freeze;
-import dev.aledlb.commands.staff.moderation.Mute;
-import dev.aledlb.commands.staff.moderation.Unmute;
+import dev.aledlb.commands.staff.moderation.*;
+import dev.aledlb.commands.staff.player.*;
 import dev.aledlb.features.motd.MOTDManager;
 import dev.aledlb.features.placeholder.CorePlaceholderExpansion;
+import dev.aledlb.features.moderation.ChatFilter;
+import dev.aledlb.features.moderation.TempBanManager;
+import dev.aledlb.features.moderation.WarningManager;
+import dev.aledlb.listeners.ChatListener;
+import dev.aledlb.utilities.ConfigManager;
+import dev.aledlb.utilities.PermissionManager;
 import net.milkbowl.vault.economy.Economy;
 
 import dev.aledlb.commands.staff.gamemode.GMA;
@@ -44,71 +50,211 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import dev.aledlb.features.player.PlayerDataManager;
+
+/**
+ * Core plugin class for managing server functionality.
+ * This plugin provides various features including:
+ * - Permission management
+ * - Economy integration
+ * - Kit system
+ * - Staff commands
+ * - Player management
+ * - Chat filtering
+ * - Warning system
+ * - Temporary bans
+ */
 public final class Core extends JavaPlugin implements CommandExecutor, Listener {
 
-    Plugin plugin = this;
-    FileConfiguration config = this.getConfig();
-    EnchantmentGUI enchantGUI;
-    KitManager kitManager;
-
-    private static Economy economy = null;
-
-    public static HashMap<UUID, PermissionAttachment> permissions;
-
+    private static final int RESOURCE_ID = 12345;
+    private static final Pattern VERSION_PATTERN = Pattern.compile("^1\\.(\\d*)\\.");
+    
+    // Plugin instance
+    private static Core instance;
+    
+    // Configuration
+    private ConfigManager configManager;
+    
+    // Feature managers
+    private EnchantmentGUI enchantGUI;
+    private KitManager kitManager;
+    private MOTDManager motdManager;
+    private ChatFilter chatFilter;
+    private TempBanManager tempBanManager;
+    private WarningManager warningManager;
+    
+    // Economy
+    private static Economy economy;
+    
+    // Permission management
+    private PermissionManager permissionManager;
+    
+    // Player data management
+    private PlayerDataManager dataManager;
+    
+    // Plugin state
+    private boolean isEnabled = false;
 
     @Override
     public void onEnable() {
-        new Logger(config);
+        instance = this;
+        initializePlugin();
+    }
 
-        Logger.console("initializing...");
-        saveDefaultConfig();
-
-        permissions = new HashMap<>();
-
-        Plugin[] plugins = Bukkit.getPluginManager().getPlugins();
-        for (Plugin plugin : plugins) {
-            if (plugin.getName().equals("Vault")) {
-                Logger.console("Vault found, enabling economy features");
-                setupEconomy();
-                break;
-            }
-
-            if (plugin.getName().equals("PlaceholderAPI")) {
-                Logger.console("PlaceholderAPI found, enabling placeholders");
-                new CorePlaceholderExpansion(this).register();
-                break;
-            }
+    /**
+     * Initializes the plugin and all its components
+     */
+    private void initializePlugin() {
+        try {
+            // Initialize configuration
+            configManager = new ConfigManager(this);
+            
+            // Initialize logger
+            new Logger(configManager.getConfig());
+            Logger.console("Initializing Core plugin...");
+            
+            // Initialize managers
+            initializeManagers();
+            
+            // Setup dependencies
+            setupDependencies();
+            
+            // Register events and commands
+            registerEventsAndCommands();
+            
+            // Add permissions to online players
+            permissionManager.addPermissionsToOnlinePlayers();
+            
+            // Check for updates
+            checkForUpdates();
+            
+            isEnabled = true;
+            logStartupInfo();
+            
+        } catch (Exception e) {
+            Logger.severe("Failed to initialize plugin: " + e.getMessage());
+            e.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this);
         }
+    }
 
-        getServer().getPluginManager().registerEvents(new MOTDManager(this), this);
-
-        getServer().getPluginManager().registerEvents(this, this);
+    /**
+     * Initializes all plugin managers
+     */
+    private void initializeManagers() {
         enchantGUI = new EnchantmentGUI(this);
         kitManager = new KitManager(this);
-        new PlayerEvent(this);
+        motdManager = new MOTDManager(this);
+        permissionManager = new PermissionManager(this);
+        dataManager = new PlayerDataManager(this);
+        chatFilter = new ChatFilter(this);
+        tempBanManager = new TempBanManager(this);
+        warningManager = new WarningManager(this);
+    }
 
-        // Permission
+    /**
+     * Sets up plugin dependencies
+     */
+    private void setupDependencies() {
+        setupEconomy();
+        setupPlaceholderAPI();
+    }
+
+    /**
+     * Sets up economy integration
+     */
+    private void setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") != null) {
+            RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+            if (rsp != null) {
+                economy = rsp.getProvider();
+                Logger.console("Economy integration successful");
+            } else {
+                Logger.warning("Failed to initialize economy - no provider found");
+            }
+        } else {
+            Logger.warning("Vault not found - economy features disabled");
+        }
+    }
+
+    /**
+     * Sets up PlaceholderAPI integration
+     */
+    private void setupPlaceholderAPI() {
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new CorePlaceholderExpansion(this).register();
+            Logger.console("PlaceholderAPI integration successful");
+        } else {
+            Logger.warning("PlaceholderAPI not found - placeholders disabled");
+        }
+    }
+
+    /**
+     * Registers all events and commands
+     */
+    private void registerEventsAndCommands() {
+        // Register events
+        getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(motdManager, this);
+        getServer().getPluginManager().registerEvents(new PlayerEvent(this), this);
+        getServer().getPluginManager().registerEvents(new ChatListener(dataManager), this);
+        getServer().getPluginManager().registerEvents(chatFilter, this);
+
+        // Register commands
+        registerCommands();
+    }
+
+    /**
+     * Registers all plugin commands
+     */
+    private void registerCommands() {
+        // Permission commands
         getCommand("permission").setTabCompleter(new PermissionTabCompleter(this));
         getCommand("permission").setExecutor(new PermissionCommands(this));
 
-        // Core
+        // Core commands
         getCommand("core").setExecutor(this);
 
-        // GameMode
+        // GameMode commands
+        registerGameModeCommands();
+
+        // Staff commands
+        registerStaffCommands();
+
+        // Kit commands
+        getCommand("kit").setTabCompleter(new KitTabCompleter(this));
+        getCommand("kit").setExecutor(new KitCommand(kitManager));
+
+        // Moderation commands
+        registerModerationCommands();
+
+        // Player commands
+        registerPlayerCommands();
+    }
+
+    /**
+     * Registers gamemode commands
+     */
+    private void registerGameModeCommands() {
         getCommand("gmc").setExecutor(new GMC());
         getCommand("gms").setExecutor(new GMS());
         getCommand("gma").setExecutor(new GMA());
         getCommand("gmsp").setExecutor(new GMSP());
+    }
 
-        // Staff
+    /**
+     * Registers staff commands
+     */
+    private void registerStaffCommands() {
         getCommand("freeze").setExecutor(new Freeze(this));
-        getCommand("mute").setExecutor(new Mute());
-        getCommand("unmute").setExecutor(new Unmute());
+        getCommand("mute").setExecutor(new Mute(this));
+        getCommand("unmute").setExecutor(new Unmute(this));
         getCommand("fly").setExecutor(new Fly());
-        getCommand("vanish").setExecutor(new Vanish());
+        getCommand("vanish").setExecutor(new Vanish(this));
         getCommand("enchantgui").setExecutor(new EnchantGUI(enchantGUI));
         getCommand("broadcast").setExecutor(new Broadcast());
         getCommand("feed").setExecutor(new Feed());
@@ -117,157 +263,87 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
         getCommand("rename").setExecutor(new Rename());
         getCommand("addlore").setExecutor(new AddLore());
         getCommand("removelore").setExecutor(new RemoveLore());
+        getCommand("keepinventory").setExecutor(new KeepInventory(this));
+    }
 
-        // Kit
-        getCommand("kit").setTabCompleter(new KitTabCompleter(this));
-        getCommand("kit").setExecutor(new KitCommand(kitManager));
+    /**
+     * Registers moderation commands
+     */
+    private void registerModerationCommands() {
+        getCommand("tempban").setExecutor(new TempBanCommand(tempBanManager));
+        getCommand("unban").setExecutor(new UnbanCommand(tempBanManager));
+        getCommand("warn").setExecutor(new WarnCommand(warningManager));
+        getCommand("unwarn").setExecutor(new UnwarnCommand(warningManager));
+        getCommand("chatfilter").setExecutor(new ChatFilterCommand(chatFilter));
+    }
 
-        addPermsToOnlinePlayers();
+    /**
+     * Registers player commands
+     */
+    private void registerPlayerCommands() {
+        getCommand("chathistory").setExecutor(new ChatHistoryCommand(dataManager));
+        getCommand("inventorybackup").setExecutor(new InventoryBackupCommand(dataManager));
+        getCommand("location").setExecutor(new LocationHistoryCommand(dataManager));
+        getCommand("playerstats").setExecutor(new PlayerStatsCommand(dataManager));
+        getCommand("keepinventory").setExecutor(new KeepInventory(this));
+    }
 
+    /**
+     * Checks for plugin updates
+     */
+    private void checkForUpdates() {
+        if (configManager.getConfig().getBoolean("check-for-updates", true)) {
+            String currentVersion = getDescription().getVersion();
+            UpdateChecker updateChecker = new UpdateChecker(RESOURCE_ID, currentVersion);
+            
+            if (updateChecker.isUpToDate()) {
+                Logger.console("You are running the latest version of Core.");
+            } else {
+                Logger.console("There is a new version of Core available.");
+                Logger.console("Download at: https://www.spigotmc.org/resources/" + RESOURCE_ID);
+            }
+        }
+    }
+
+    /**
+     * Logs startup information
+     */
+    private void logStartupInfo() {
         Logger.console("&4==========&7=======&7[&a&lActivated&7]=======&4==========");
         Logger.console("&7Core Plugin has been enabled");
         Logger.console("");
         Logger.console("&7Version: &6" + getDescription().getVersion());
         Logger.console("&4==========&7=======&7[&a&lActivated&7]=======&4==========");
-
-        if (config.getBoolean("check-for-updates")) {
-            int resourceId = 12345;
-            String currentVersion = getDescription().getVersion();
-            UpdateChecker updateChecker = new UpdateChecker(resourceId, currentVersion);
-            if (updateChecker.isUpToDate()) {
-                Logger.console("You are running the latest version of Core.");
-            } else {
-                Logger.console("There is a new version of Core available.");
-                Logger.console("You can download it at: https://www.spigotmc.org/resources/" + resourceId);
-            }
-        }
-
         Logger.console("&4==========&7===================================&4==========");
         Logger.console("&eName: &6" + getDescription().getName());
         Logger.console("&eAuthor: &6" + getDescription().getAuthors());
-        Logger.console("&4==========&7===================================&4==========");
-        Logger.console("&eMongoDB: &cNot implemented yet");
-        Logger.console("&eRedis: &cNot implemented yet");
         Logger.console("&4==========&7===================================&4==========");
     }
 
     @Override
     public void onDisable() {
-        removePermissions();
-        saveConfig();
-        HandlerList.unregisterAll((Plugin) this);
-        Logger.console("has been disabled");
-    }
-
-    private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            return false;
-        }
-        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) {
-            return false;
-        }
-        economy = rsp.getProvider();
-        return true;
-    }
-
-    public static boolean isInteger(String index) {
+        if (!isEnabled) return;
+        
         try {
-            Integer.parseInt(index);
-            return true;
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
-
-    static int getMcVersion() {
-        String bukkitVersionString = Bukkit.getBukkitVersion();
-        Pattern p = Pattern.compile("^1\\.(\\d*)\\.");
-        Matcher m = p.matcher((bukkitVersionString));
-        int version = -1;
-        while (m.find()) {
-            if (NumberUtils.isNumber(m.group(1)))
-                version = Integer.parseInt(m.group(1));
-        }
-        return version;
-    }
-
-    private void addPermsToOnlinePlayers() {
-        for (Player player : getServer().getOnlinePlayers()) {
-            if (player != null)
-                addPermissions(player);
-        }
-    }
-
-    public void addPermissions(Player p) {
-        PermissionAttachment attachment = p.addAttachment(this);
-
-        for (String permission : config.getStringList("default.permissions")) {
-            addPermission(attachment, permission);
-        }
-
-        for (String group : getConfig().getStringList("users." + p.getName() + ".groups")) {
-            System.out.println("User " + p.getName() + " is in group " + group);
-            for (String perm : getConfig().getStringList("groups." + group + ".permissions")) {
-                addPermission(attachment, perm);
-            }
-            for (String parent : getConfig().getStringList("groups." + group + ".parents"))
-                for (String perm : getConfig().getStringList("groups." + parent + ".permissions")) {
-                    addPermission(attachment, perm);
-                }
-        }
-
-        for (String perm : getConfig().getStringList("users." + p.getName() + ".permissions")) {
-            addPermission(attachment, perm);
-        }
-
-        permissions.put(p.getUniqueId(), attachment);
-        if (getMcVersion()>=13) {
-            p.updateCommands();
+            permissionManager.removeAllPermissions();
+            configManager.saveConfigs();
+            HandlerList.unregisterAll((Plugin) this);
+            Logger.console("Core plugin has been disabled");
+            Logger.close();
+        } catch (Exception e) {
+            Logger.severe("Error during plugin shutdown: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        addPermissions(event.getPlayer());
+        permissionManager.addPermissions(event.getPlayer());
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        PermissionAttachment attachment = permissions.get(event.getPlayer().getUniqueId());
-        if(attachment != null) {
-            try {
-                event.getPlayer().removeAttachment(attachment);
-            } catch (Throwable ignored) {
-
-            }
-        }
-    }
-
-    private void addPermission(PermissionAttachment attachment, String permission) {
-        boolean positive = !permission.startsWith("-");
-        if (!positive) {
-            permission = permission.substring(1);
-        }
-        attachment.setPermission(permission, positive);
-    }
-
-    void removePermissions() {
-        for (Player player : getServer().getOnlinePlayers()) {
-            PermissionAttachment attachment = permissions.get(player.getUniqueId());
-            player.removeAttachment(attachment);
-        }
-    }
-
-    public void reloadPermissions() {
-        saveConfig();
-        reloadPermissionsWithoutSaving();
-    }
-
-    public void reloadPermissionsWithoutSaving() {
-        removePermissions();
-        reloadConfig();
-        addPermsToOnlinePlayers();
+        permissionManager.removePermissions(event.getPlayer());
     }
 
     @Override
@@ -301,6 +377,21 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
             sender.sendMessage(ChatColor.AQUA + "/kit delete <kitName>" + ChatColor.WHITE + " - Delete a kit");
             sender.sendMessage(ChatColor.AQUA + "/kit list" + ChatColor.WHITE + " - List all available kits");
 
+            // Moderation Commands
+            sender.sendMessage(ChatColor.GREEN + "Moderation Commands:");
+            sender.sendMessage(ChatColor.AQUA + "/tempban <player> <duration> <reason>" + ChatColor.WHITE + " - Temporarily ban a player");
+            sender.sendMessage(ChatColor.AQUA + "/unban <player>" + ChatColor.WHITE + " - Unban a player");
+            sender.sendMessage(ChatColor.AQUA + "/warn <player> <reason>" + ChatColor.WHITE + " - Warn a player");
+            sender.sendMessage(ChatColor.AQUA + "/unwarn <player>" + ChatColor.WHITE + " - Unwarn a player");
+            sender.sendMessage(ChatColor.AQUA + "/chatfilter" + ChatColor.WHITE + " - Manage chat filtering");
+
+            // Player Commands
+            sender.sendMessage(ChatColor.GREEN + "Player Commands:");
+            sender.sendMessage(ChatColor.AQUA + "/chathistory" + ChatColor.WHITE + " - View chat history");
+            sender.sendMessage(ChatColor.AQUA + "/inventorybackup" + ChatColor.WHITE + " - Backup your inventory");
+            sender.sendMessage(ChatColor.AQUA + "/location" + ChatColor.WHITE + " - View your location history");
+            sender.sendMessage(ChatColor.AQUA + "/playerstats" + ChatColor.WHITE + " - View player statistics");
+
             sender.sendMessage(ChatColor.DARK_AQUA + "=================================");
 
             return true;
@@ -309,15 +400,71 @@ public final class Core extends JavaPlugin implements CommandExecutor, Listener 
         return false;
     }
 
-//    public static Economy getEconomy() {
-//        return economy;
-//    }
-//
-//    public static Permission getPermissions() {
-//        return permission;
-//    }
-//
-//    public static Chat getChat() {
-//        return chat;
-//    }
+    public static int getMcVersion() {
+        String bukkitVersionString = Bukkit.getBukkitVersion();
+        Matcher m = VERSION_PATTERN.matcher((bukkitVersionString));
+        int version = -1;
+        while (m.find()) {
+            if (NumberUtils.isNumber(m.group(1)))
+                version = Integer.parseInt(m.group(1));
+        }
+        return version;
+    }
+
+    /**
+     * Gets the plugin instance
+     * @return Core plugin instance
+     */
+    public static Core getInstance() {
+        return instance;
+    }
+
+    /**
+     * Gets the economy instance
+     * @return Economy instance or null if not available
+     */
+    public static Economy getEconomy() {
+        return economy;
+    }
+
+    /**
+     * Checks if the plugin is fully enabled
+     * @return true if plugin is enabled and initialized
+     */
+    public boolean isPluginEnabled() {
+        return isEnabled;
+    }
+
+    /**
+     * Gets the permission manager
+     * @return The permission manager instance
+     */
+    public PermissionManager getPermissionManager() {
+        return permissionManager;
+    }
+
+    /**
+     * Gets the configuration manager
+     * @return The configuration manager instance
+     */
+    public ConfigManager getConfigManager() {
+        return configManager;
+    }
+    
+    /**
+     * Checks if a string is a valid integer
+     * @param str The string to check
+     * @return true if the string is a valid integer, false otherwise
+     */
+    public static boolean isInteger(String str) {
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
 }

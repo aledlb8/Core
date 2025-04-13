@@ -8,7 +8,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class GMA implements CommandExecutor {
+/**
+ * Handles the /gma command which sets a player's gamemode to Adventure.
+ */
+public class GMA extends BaseGameModeCommand {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -24,5 +27,15 @@ public class GMA implements CommandExecutor {
         player.setGameMode(GameMode.ADVENTURE);
         Logger.player(player, ChatColor.GREEN + "Gamemode updated to Adventure");
         return true;
+    }
+
+    @Override
+    protected GameMode getGameMode() {
+        return GameMode.ADVENTURE;
+    }
+
+    @Override
+    protected String getGameModeName() {
+        return "Adventure";
     }
 }
